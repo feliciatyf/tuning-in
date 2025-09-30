@@ -1,0 +1,3 @@
+[submodule "lib/deepface"]
+	path = lib/deepface
+	url = https://github.com/serengil/deepface.git
