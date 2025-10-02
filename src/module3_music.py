@@ -17,6 +17,8 @@
 # limitations under the License.
 
 """
+Reference Website:https://ai.google.dev/gemini-api/docs/music-generation#python
+
 ## Setup
 
 To install the dependencies for this script, run:
