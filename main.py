@@ -6,7 +6,17 @@
 
 # Import modules from src
 
-if __name__ == "__main__":
+from flask import Flask
 
+app = Flask(__name__)
 
-    pass
+@app.route('/')
+def home():
+    return "<h1>Hello from Flask!</h1><p>This is a local Python website.</p>"
+
+@app.route('/about')
+def about():
+    return "<h2>About Us</h2><p>We are learning to build websites with Python.</p>"
+
+if __name__ == '__main__':
+    app.run(debug=True)
