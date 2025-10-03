@@ -47,26 +47,43 @@ import os
 from google import genai
 from google.genai import types
 
-# Longer buffer reduces chance of audio drop, but also delays audio and user commands.
-BUFFER_SECONDS=1
-CHUNK=4200
-FORMAT=pyaudio.paInt16
-CHANNELS=2
-MODEL='models/lyria-realtime-exp'
-OUTPUT_RATE=48000
+def get_credentials(credentials_path='creds/lyria_credentials.json'):
+    """Fetches API key from environment variable or local file."""
+    if os.path.exists(credentials_path):
+        with open(credentials_path, 'r') as f:
+            api_key = f.read()
+    else:
+        api_key = os.environ.get("GOOGLE_API_KEY")
 
-api_key = os.environ.get("GOOGLE_API_KEY")
+    if api_key is None:
+        print("Please enter your API key")
+        api_key = input("API Key: ").strip()
 
-if api_key is None:
-    print("Please enter your API key")
-    api_key = input("API Key: ").strip()
+    return api_key
 
-client = genai.Client(
-    api_key=api_key,
-    http_options={'api_version': 'v1alpha',}, # v1alpha since Lyria RealTime is only experimental
-)
+def start_client(api_key):
+    """Initializes the GenAI client with the provided API key."""
+    client = genai.Client(
+        api_key=api_key,
+        http_options={'api_version': 'v1alpha',}, # v1alpha since Lyria RealTime is only experimental
+    )
+    return client
 
-async def main():
+async def generate_music(input_prompt: str):
+    """Generates music based on the input prompt and plays it in real-time."""
+    # Audio configuration
+    # Longer buffer reduces chance of audio drop, but also delays audio and user commands.
+    BUFFER_SECONDS=1
+    CHUNK=4200
+    FORMAT=pyaudio.paInt16
+    CHANNELS=2
+    MODEL='models/lyria-realtime-exp'
+    OUTPUT_RATE=48000
+
+    # start model
+    api_key = get_credentials()
+    client = start_client(api_key)
+
     p = pyaudio.PyAudio()
     config = types.LiveMusicGenerationConfig()
     async with client.aio.live.music.connect(model=MODEL) as session:
@@ -212,16 +229,19 @@ async def main():
 
         print("Starting with some piano")
         await session.set_weighted_prompts(
-            prompts=[types.WeightedPrompt(text="Piano", weight=1.0)]
+            prompts=[types.WeightedPrompt(text="Piano", weight=1.0), 
+                     types.WeightedPrompt(text="Calming Therapy Music", weight=5.0),
+                     types.WeightedPrompt(text="Ambient", weight=4.0),
+                     types.WeightedPrompt(text=input_prompt, weight=3.0)]
         )
 
         # Set initial BPM and Scale
-        config.bpm = 120
+        config.bpm = 60
         config.scale = types.Scale.A_FLAT_MAJOR_F_MINOR # Example initial scale
         print(f"Setting initial BPM to {config.bpm} and scale to {config.scale.name}")
         await session.set_music_generation_config(config=config)
 
-        print(f"Let's get the party started!")
+        print(f"Playing Music")
         await session.play()
 
         send_task = asyncio.create_task(send())
@@ -233,4 +253,5 @@ async def main():
     # Clean up PyAudio
     p.terminate()
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(generate_music(input_prompt="soothing ambient music for relaxation with a positive mood"))
