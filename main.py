@@ -6,7 +6,7 @@
 
 # Import modules from src
 
-from flask import Flask
+from flask import Flask, render_template, redirect, url_for, request
 
 app = Flask(__name__)
 
@@ -16,7 +16,9 @@ def home():
 
 @app.route('/about')
 def about():
-    return "<h2>About Us</h2><p>We are learning to build websites with Python.</p>"
-
+    return render_template(
+        'index.html',
+        title='About Page',
+        content='This is the about page of the Flask application.')
 if __name__ == '__main__':
     app.run(debug=True)
