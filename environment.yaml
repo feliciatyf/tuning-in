@@ -1,0 +1,10 @@
+name: tuning-in
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - pyaudio
+  - flask
+  - pip:
+      - google-genai
+prefix: C:\Users\felicia\anaconda3\envs\tuning-in
