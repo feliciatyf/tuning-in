@@ -65,7 +65,9 @@ def analyze_video_emotions(video_path, output_csv):
         df = pd.DataFrame(all_emotions)
         df.to_csv(output_csv, index=False)
         print(f"Analysis complete. Results saved to {output_csv}")
-        return df
+        emotions_list = ['angry','disgust','fear','happy','sad','surprise','neutral']
+        selected_columns_sum=df[emotions_list].sum()
+        return selected_columns_sum.idxmax()
     else:
         print("No faces or emotions were detected in the video.")
 
@@ -105,15 +107,9 @@ if __name__ == "__main__":
     video_file = "test_therapy_video_short.mp4" 
     output_csv_file = "emotion_analysis.csv"
     
-    df = analyze_video_emotions(video_file, output_csv_file)
+    video_emotion = analyze_video_emotions(video_file, output_csv_file)
 
-    emotions_list = ['angry','disgust','fear','happy','sad','surprise','neutral']
-    selected_columns_sum=df[emotions_list].sum()
-    
-    print(f"\nDetected video facial emotion: {selected_columns_sum.idxmax()}")
-
-    for emotion in emotions_list:
-        print(f"{emotion}: {df[emotion].sum()}")
+    print(f"\nDetected video facial emotion: {video_emotion}")
 
     speech_emotion, confidence = analyze_speech_emotions(video_file, "extracted_audio.wav")
 
