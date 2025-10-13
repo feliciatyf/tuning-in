@@ -44,6 +44,8 @@ websockets.
 import asyncio
 import pyaudio
 import os
+import wave
+from pydub import AudioSegment
 from google import genai
 from google.genai import types
 
@@ -79,6 +81,8 @@ async def generate_music(input_prompt: str):
     CHANNELS=2
     MODEL='models/lyria-realtime-exp'
     OUTPUT_RATE=48000
+    MAX_CHUNKS= 20 # Stop after this many chunks (for demo purposes), 1 chunk is roughly 2s
+    OUTPUT_FILE="output_music.wav"
 
     # start model
     api_key = get_credentials()
@@ -91,16 +95,28 @@ async def generate_music(input_prompt: str):
             chunks_count = 0
             output_stream = p.open(
                 format=FORMAT, channels=CHANNELS, rate=OUTPUT_RATE, output=True, frames_per_buffer=CHUNK)
+            frames = []
             async for message in session.receive():
                 chunks_count += 1
                 if chunks_count == 1:
                     # Introduce a delay before starting playback to have a buffer for network jitter.
                     await asyncio.sleep(BUFFER_SECONDS)
-                # print("Received chunk: ", message)
+                if chunks_count > MAX_CHUNKS:
+                    print("Reached max recording time. Stopping.")
+                    waveFile = wave.open(OUTPUT_FILE, 'wb')
+                    waveFile.setnchannels(CHANNELS)
+                    waveFile.setsampwidth(p.get_sample_size(FORMAT))
+                    waveFile.setframerate(OUTPUT_RATE)
+                    waveFile.writeframes(b''.join(frames))
+                    waveFile.close()
+                    print(f"Audio recording saved to {OUTPUT_FILE}")
+                    await session.stop()
+                    break
                 if message.server_content:
-                # print("Received chunk with metadata: ", message.server_content.audio_chunks[0].source_metadata)
                     audio_data = message.server_content.audio_chunks[0].data
-                    output_stream.write(audio_data)
+                    output_stream.write(audio_data)                    
+                    # record audio into frames
+                    frames.append(audio_data)
                 elif message.filtered_prompt:
                     print("Prompt was filtered out: ", message.filtered_prompt)
                 else:
@@ -242,6 +258,7 @@ async def generate_music(input_prompt: str):
         await session.set_music_generation_config(config=config)
 
         print(f"Playing Music")
+        print(f"Prompt: {input_prompt}")
         await session.play()
 
         send_task = asyncio.create_task(send())
@@ -254,4 +271,8 @@ async def generate_music(input_prompt: str):
     p.terminate()
 
 if __name__ == "__main__":
-    asyncio.run(generate_music(input_prompt="soothing ambient music for relaxation with a positive mood"))
+    asyncio.run(generate_music(input_prompt="soothing ambient music to give a fearful person courage"))
+
+    # audio = AudioSegment.from_file("output_music.wav", format="wav") # Or "mp3", "m4a", etc.
+    # out_f = audio.export("output_music.mp3", format="mp3")
+    # out_f.close()
