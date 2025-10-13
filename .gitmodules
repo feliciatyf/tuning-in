@@ -1,3 +1,6 @@
 [submodule "lib/deepface"]
 	path = lib/deepface
 	url = https://github.com/serengil/deepface.git
+[submodule "lib/deepface-react-ui"]
+	path = lib/deepface-react-ui
+	url = https://github.com/serengil/deepface-react-ui.git
