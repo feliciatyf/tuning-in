@@ -273,6 +273,6 @@ async def generate_music(input_prompt: str):
 if __name__ == "__main__":
     asyncio.run(generate_music(input_prompt="soothing ambient music to give a fearful person courage"))
 
-    audio = AudioSegment.from_file("output_music.wav", format="wav") # Or "mp3", "m4a", etc.
-    out_f = audio.export("output_music.mp3", format="mp3")
-    out_f.close()
+    # audio = AudioSegment.from_file("output_music.wav", format="wav") # Or "mp3", "m4a", etc.
+    # out_f = audio.export("output_music.mp3", format="mp3")
+    # out_f.close()
