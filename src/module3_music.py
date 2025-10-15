@@ -71,7 +71,7 @@ def start_client(api_key):
     )
     return client
 
-async def generate_music(input_prompt: str):
+async def generate_music(input_prompt: str, output_file: str = "output_music.wav"):
     """Generates music based on the input prompt and plays it in real-time."""
     # Audio configuration
     # Longer buffer reduces chance of audio drop, but also delays audio and user commands.
@@ -82,7 +82,6 @@ async def generate_music(input_prompt: str):
     MODEL='models/lyria-realtime-exp'
     OUTPUT_RATE=48000
     MAX_CHUNKS= 20 # Stop after this many chunks (for demo purposes), 1 chunk is roughly 2s
-    OUTPUT_FILE="output_music.wav"
 
     # start model
     api_key = get_credentials()
@@ -103,13 +102,13 @@ async def generate_music(input_prompt: str):
                     await asyncio.sleep(BUFFER_SECONDS)
                 if chunks_count > MAX_CHUNKS:
                     print("Reached max recording time. Stopping.")
-                    waveFile = wave.open(OUTPUT_FILE, 'wb')
+                    waveFile = wave.open(output_file, 'wb')
                     waveFile.setnchannels(CHANNELS)
                     waveFile.setsampwidth(p.get_sample_size(FORMAT))
                     waveFile.setframerate(OUTPUT_RATE)
                     waveFile.writeframes(b''.join(frames))
                     waveFile.close()
-                    print(f"Audio recording saved to {OUTPUT_FILE}")
+                    print(f"Audio recording saved to {output_file}")
                     await session.stop()
                     break
                 if message.server_content:
@@ -271,7 +270,7 @@ async def generate_music(input_prompt: str):
     p.terminate()
 
 if __name__ == "__main__":
-    asyncio.run(generate_music(input_prompt="soothing ambient music to give a fearful person courage"))
+    asyncio.run(generate_music(input_prompt="upbeat music to cheer up a sad person", output_file="output_music_prompt88.wav"))
 
     # audio = AudioSegment.from_file("output_music.wav", format="wav") # Or "mp3", "m4a", etc.
     # out_f = audio.export("output_music.mp3", format="mp3")
